@@ -18,7 +18,8 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({ className }) =
       onClick={connectWallet}
       disabled={isConnecting}
       className={`
-        relative px-6 py-2.5 
+        relative px-6 py-2.5
+        h-full
         font-medium text-white text-sm
         bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600
         hover:from-orange-500 hover:via-orange-600 hover:to-orange-700
