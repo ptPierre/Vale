@@ -135,7 +135,7 @@ export const BorrowingPage: React.FC = () => {
                 type="number"
                 value={tokenId}
                 onChange={(e) => setTokenId(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-800/50 rounded-lg border border-orange-500/20 focus:border-orange-500/50 focus:outline-none transition-colors"
+                className="w-full px-4 py-3 bg-zinc-800/50 rounded-lg border border-orange-500/20 focus:border-orange-500/50 focus:outline-none transition-colors [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder="Enter your vNFT token ID"
                 disabled={isSubmitting}
               />
@@ -150,7 +150,7 @@ export const BorrowingPage: React.FC = () => {
                   type="number"
                   value={requestedAmount}
                   onChange={(e) => setRequestedAmount(e.target.value)}
-                  className="w-full px-4 py-3 bg-zinc-800/50 rounded-lg border border-orange-500/20 focus:border-orange-500/50 focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-zinc-800/50 rounded-lg border border-orange-500/20 focus:border-orange-500/50 focus:outline-none transition-colors [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none"
                   placeholder="Max amount: 3072 USDC"
                   disabled={isSubmitting}
                 />

@@ -38,7 +38,7 @@ export const Header: React.FC = () => {
             <img 
               src={logo} 
               alt="Vale Logo" 
-              className="h-[35px] w-auto object-contain" // Taille réduite
+              className="h-[43px] w-auto object-contain" // Taille réduite
             />
           </Link>
 
