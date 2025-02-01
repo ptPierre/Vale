@@ -7,7 +7,8 @@ async function main() {
   
   await valeToken.waitForDeployment();
   
-  console.log(`ValeToken deploy at : ${await valeToken.getAddress()}`);
+  const address = await valeToken.getAddress();
+  console.log(`ValeToken deployed to: ${address}`);
 }
 
 main().catch((error) => {
