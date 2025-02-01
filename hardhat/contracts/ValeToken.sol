@@ -7,11 +7,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract ValeToken is ERC721, Ownable {
     // Available public keys definition
     uint256[] public availablePublicKeys = [
-        0x91104f28e17de8c6bec26c5a8e64a149ba3ed2a35273197c33ed2f2bc74b8dbd,
-        0x820b2cf260a032e87555692de4732ae05f92b37f9a9153e684c43e31aea4b974,
-        0x85ba506bab27f6f32063a5c1b8392390c65f2ef5a6ca11ed29d3edae4788aec3,
-        0xaed72df183c23c2820774bf4729402130bcce5d83e861a9eb2cf6b7e12eca818,
-        0x9217e329dbf1ec6f2ef3f048c92e2035d7dea61ad0a6ed2a82db40769635d5e0
+        0x91104f28e17de8c6bec26c5a8e64a149ba3ed2a35273197c33ed2f2bc74b8dbd, //21958
+        0x820b2cf260a032e87555692de4732ae05f92b37f9a9153e684c43e31aea4b974, //66456
+        0x85ba506bab27f6f32063a5c1b8392390c65f2ef5a6ca11ed29d3edae4788aec3, //17970
+        0xaed72df183c23c2820774bf4729402130bcce5d83e861a9eb2cf6b7e12eca818, //89290
+        0x9217e329dbf1ec6f2ef3f048c92e2035d7dea61ad0a6ed2a82db40769635d5e0 //17021
     ];
     
     uint256 private currentKeyIndex;
