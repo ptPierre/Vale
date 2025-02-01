@@ -1,0 +1,13 @@
+project_root/
+├── contracts/
+│   └── DataStorage.sol
+├── hardhat/
+│   ├── scripts/
+│   │   └── deploy.js
+│   ├── hardhat.config.js
+│   └── package.json
+├── python/
+│   ├── .env
+│   ├── requirements.txt
+│   └── main.py
+└── .gitignore 
