@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-background: #121212;
+  --color-primary: #ff6600;
+  --color-primary-hover: #ff8533;
+  --color-secondary: #1a1a1a;
+  --color-text: #ffffff;
+  --color-text-secondary: #a0a0a0;
+  --transition-speed: 0.3s;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--color-background)] text-[var(--color-text)];
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg 
+           transition-all duration-300 hover:bg-[var(--color-primary-hover)]
+           transform hover:scale-105 focus:outline-none focus:ring-2 
+           focus:ring-[var(--color-primary)] focus:ring-opacity-50;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-[var(--color-primary)] to-orange-400 
+           bg-clip-text text-transparent;
+  }
+
+  .card {
+    @apply bg-[var(--color-secondary)] rounded-xl p-6 
+           shadow-lg backdrop-blur-sm border border-gray-800;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

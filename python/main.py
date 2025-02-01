@@ -6,11 +6,13 @@ from web3 import Web3
 from eth_account import Account
 import json
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from threading import Thread
 import csv
 import pathlib
 
 app = Flask(__name__)
+CORS(app, resources={r"/validator": {"origins": "http://localhost:5173"}})
 
 # Load environment variables
 load_dotenv()
