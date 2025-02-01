@@ -32,21 +32,20 @@ export const Header: React.FC = () => {
         <div className="flex justify-between items-center h-18">
           <Link 
             to="/" 
-            className="flex items-center space-x-0 space-y-100 group hover:scale-95 transition-transform duration-300"
+            className="flex items-center h-full px-2 group transition-transform duration-300"
           >
             <img 
               src={logo} 
               alt="Vale Logo" 
-              className="max-w-[180px] max-h-[60px] object-contain filter drop-shadow-lg"
+              className="h-[40px] w-auto object-contain filter drop-shadow-lg"
             />
           </Link>
-
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-16">
             <NavLink to="/">Home</NavLink>
             <NavLink to="/borrowing">Borrow</NavLink>
             <NavLink to="/lending">Lend</NavLink>
-            <div className="hover:scale-105 transition-transform duration-300">
+            <div>
               <WalletConnector />
             </div>
           </nav>
@@ -103,7 +102,7 @@ export const Header: React.FC = () => {
                 Lend
               </span>
             </NavLink>
-            <div className="mt-4 hover:scale-105 transition-transform duration-300 active:scale-95">
+            <div className="mt-4">
               <WalletConnector />
             </div>
           </div>
