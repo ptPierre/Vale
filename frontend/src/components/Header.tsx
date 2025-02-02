@@ -30,15 +30,14 @@ export const Header: React.FC = () => {
     <header className="fixed top-0 w-full bg-zinc-900/90 backdrop-blur-lg border-b border-orange-500/10 z-50 shadow-xl h-[72px]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex justify-between items-center h-full">
-          {/* Logo avec hauteur fixe et padding contrôlé */}
           <Link 
             to="/" 
-            className="flex items-center h-full py-3" // Ajout de padding vertical
+            className="flex items-center h-full py-3"
           >
             <img 
               src={logo} 
               alt="Vale Logo" 
-              className="h-[43px] w-auto object-contain" // Taille réduite
+              className="h-[43px] w-auto object-contain"
             />
           </Link>
 
@@ -50,9 +49,8 @@ export const Header: React.FC = () => {
               <NavLink to="/lending">Lend</NavLink>
             </div>
             
-            {/* Conteneur pour le bouton Wallet */}
             <div className="h-full flex items-center">
-              <WalletConnector className="h-[42px]"/> {/* Hauteur fixe */}
+              <WalletConnector className="h-[42px]"/>
             </div>
           </nav>
 

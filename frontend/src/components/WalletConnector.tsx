@@ -32,7 +32,6 @@ export const WalletConnector: React.FC<WalletConnectorProps> = ({ className }) =
         ${className}
       `}
     >
-      {/* Effet de brillance au hover */}
       <div className="absolute inset-0 w-1/2 h-full translate-x-[-150%] group-hover:translate-x-[200%] transform-gpu bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 ease-in-out" />
       
       <Wallet className="w-4 h-4 transition-transform group-active:scale-95" />
