@@ -24,8 +24,19 @@ account = Account.from_key(private_key)
 
 # Contract configuration
 CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS')
-with open('../hardhat/artifacts/contracts/DataStorage.sol/DataStorage.json', 'r') as f:
-    contract_abi = json.load(f)['abi']
+
+# Get the absolute path to the artifacts directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+artifact_path = os.path.join(current_dir, '..', 'hardhat', 'artifacts', 'contracts', 'DataStorage.sol', 'DataStorage.json')
+
+try:
+    with open(artifact_path, 'r') as f:
+        contract_abi = json.load(f)['abi']
+except FileNotFoundError:
+    print(f"Could not find contract artifacts at: {artifact_path}")
+    print("Make sure you've compiled your contracts with 'npx hardhat compile'")
+    raise
+
 contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=contract_abi)
 
 # CSV file configuration

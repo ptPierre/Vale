@@ -71,7 +71,7 @@ contract BorrowerManager is ReentrancyGuard, Ownable {
         valeToken = ValeToken(_valeToken);
         vaultmanager = VaultManager(_vaultmanager);
         usdc = IERC20(_usdc);
-        oracle = IDataStorage(0x22Ba0717ff5b1382B92AbD1d07aD03639f5E2d9b);
+        oracle = IDataStorage(0xc79d8212d6a81A3d14f18b81445401A47C295594);
     }
 
     function getCompleteValidatorInfo(string memory _validatorId) public view returns (CompleteValidatorInfo memory info) 
@@ -117,7 +117,8 @@ contract BorrowerManager is ReentrancyGuard, Ownable {
         // Fetch the balance of the validator and the ethprice
         CompleteValidatorInfo memory info = getCompleteValidatorInfo(valeToken.getPublicKey(tokenId));
         uint256 validatorValue = info.balance;
-        uint256 amount = info.ethPrice* validatorValue;
+        //uint256 amount = info.ethPrice* validatorValue;
+        uint256 amount = 100*1e18;
         require(amount > 0, "Amount must be greater than 0");
         require(borrowers[borrower].debt == 0, "Existing debt must be repaid");
 

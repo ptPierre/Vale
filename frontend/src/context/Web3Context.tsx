@@ -1,15 +1,21 @@
 import { createContext, useContext, useState, useCallback } from 'react';
-import { BrowserProvider, JsonRpcSigner, Eip1193Provider } from 'ethers';
+import { ethers } from 'ethers';
+
+declare global {
+  interface Window {
+    ethereum?: unknown;
+  }
+}
 
 interface Web3ContextType {
   address: string | null;
-  provider: BrowserProvider | null;
-  signer: JsonRpcSigner | null;
+  provider: ethers.BrowserProvider | null;
+  signer: ethers.JsonRpcSigner | null;
   connectWallet: () => Promise<void>;
   isConnecting: boolean;
 }
 
-const Web3Context = createContext<Web3ContextType>({
+export const Web3Context = createContext<Web3ContextType>({
   address: null,
   provider: null,
   signer: null,
@@ -19,8 +25,8 @@ const Web3Context = createContext<Web3ContextType>({
 
 export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [address, setAddress] = useState<string | null>(null);
-  const [provider, setProvider] = useState<BrowserProvider | null>(null);
-  const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
+  const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
 
   const connectWallet = useCallback(async () => {
@@ -31,8 +37,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       setIsConnecting(true);
-      const ethereum = window.ethereum as unknown as Eip1193Provider;
-      const provider = new BrowserProvider(ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum as ethers.Eip1193Provider);
       const accounts = await provider.send('eth_requestAccounts', []);
       const signer = await provider.getSigner();
 
