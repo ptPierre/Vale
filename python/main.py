@@ -78,25 +78,51 @@ def get_api_data(validator_id):
     else:
         raise Exception(f"API request failed with status code: {response.status_code}")
 
+def get_eth_price():
+    """Fetch current ETH price from CryptoCompare"""
+    url = "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=ETH&tsyms=USD"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        # Get price and convert to integer with 8 decimals
+        price = int(float(data['RAW']['ETH']['USD']['PRICE']) * 100000000)
+        print(f"Current ETH price: ${price/100000000:.2f}")
+        return price
+    else:
+        raise Exception(f"Price API request failed with status code: {response.status_code}")
+
+def update_price_data(price):
+    """Update price in the smart contract"""
+    nonce = w3.eth.get_transaction_count(account.address)
+    
+    transaction = contract.functions.updatePrice(
+        int(price)
+    ).build_transaction({
+        'from': account.address,
+        'nonce': nonce,
+        'gas': 500000,
+        'gasPrice': w3.eth.gas_price
+    })
+    
+    signed_txn = w3.eth.account.sign_transaction(transaction, private_key)
+    tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+    
+    tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    return tx_receipt
+
 def update_contract_data(validator_id, balance, rewards):
     """Update validator data in the smart contract"""
     nonce = w3.eth.get_transaction_count(account.address)
     
-    # Convert validator_id to proper bytes32 format
-    # Remove '0x' prefix if present
-    validator_id = validator_id.replace('0x', '')
-    # Ensure the string is exactly 64 characters (32 bytes)
-    validator_id = validator_id[:64].rjust(64, '0')
-    validator_bytes32 = Web3.to_bytes(hexstr=validator_id)
-    
     transaction = contract.functions.updateValidator(
-        validator_bytes32,
-        int(balance),  # Ensure these are integers
+        validator_id,
+        int(balance),
         int(rewards)
     ).build_transaction({
         'from': account.address,
         'nonce': nonce,
-        'gas': 500000,  # Increased gas limit further
+        'gas': 500000,
         'gasPrice': w3.eth.gas_price
     })
     
@@ -109,15 +135,25 @@ def update_contract_data(validator_id, balance, rewards):
 def monitor_validators():
     """Monitor all validators from the CSV file"""
     while True:
-        validators = load_validators()
-        for validator_id in validators:
-            try:
-                balance, rewards = get_api_data(validator_id)
-                tx_receipt = update_contract_data(validator_id, balance, rewards)
-                print(f"Balance updated for {validator_id}. Tx hash: {tx_receipt['transactionHash'].hex()}")
-            except Exception as e:
-                print(f"Error updating {validator_id}: {str(e)}")
-        time.sleep(60)
+        try:
+            # Update ETH price
+            price = get_eth_price()
+            price_receipt = update_price_data(price)
+            print(f"Price updated. Tx hash: {price_receipt['transactionHash'].hex()}")
+            
+            # Update validator data
+            validators = load_validators()
+            for validator_id in validators:
+                try:
+                    balance, rewards = get_api_data(validator_id)
+                    tx_receipt = update_contract_data(validator_id, balance, rewards)
+                    print(f"Balance updated for {validator_id}. Tx hash: {tx_receipt['transactionHash'].hex()}")
+                except Exception as e:
+                    print(f"Error updating {validator_id}: {str(e)}")
+            time.sleep(60)
+        except Exception as e:
+            print(f"Error in monitor loop: {str(e)}")
+            time.sleep(60)
 
 @app.route('/validator', methods=['POST'])
 def add_validator():
