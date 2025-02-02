@@ -2,49 +2,34 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./BorrowerManager.sol";
+
 
 contract VaultManager is ERC4626 {
-    uint256 public constant MIN_DEPOSIT = 100 * 10**6;    // 100 USDC
-    uint256 public constant LOCK_PERIOD = 30 days;
-    
-    // Pour le calcul des interests
-    uint256 private totalInterestsEarned;      // Total des interests générés
-    uint256 private interestsPerShare;         // interests accumulés par share
+    uint256 private constant LOCK_PERIOD = 30 days;
+    uint256 private constant MIN_DEPOSIT = 100e6; // 100 USDC (6 decimals)
+
+    uint256 private totalInterestsEarned;      
+    uint256 private interestsPerShare;         
     uint256 private constant interestS_PRECISION = 1e12;
+    uint256 public totalWithdrawn;
+
+    BorrowerManager public borrowerManager;
 
     mapping(address => uint256) public depositTimestamps;
-    mapping(address => uint256) public interestDebt;        // Pour tracker les interests déjà payés
+    mapping(address => uint256) public interestDebt;    
+    mapping(address => uint256) public pendingAmounts;    
 
     event interestsDistributed(uint256 amount);
     event interestsClaimed(address indexed user, uint256 amount);
 
     constructor(address _usdc) ERC4626(IERC20(_usdc)) ERC20("Vale Part", "VP") {}
 
-    // calculer les parts en tenant compte des interests accumulés
-    function convertToShares(uint256 assets) public view virtual override returns (uint256) {
-        uint256 supply = totalSupply();
-        if (supply == 0) {
-            return assets;
-        }
-        // Les nouveaux déposants reçoivent moins de parts si il y a des interests accumulés
-        return (assets * supply) / (totalAssets() + totalInterestsEarned);
-    }
-
-    // Override pour calculer les assets en incluant les interests
-    function convertToAssets(uint256 shares) public view virtual override returns (uint256) {
-        uint256 supply = totalSupply();
-        if (supply == 0) {
-            return shares;
-        }
-        // La valeur des parts augmente avec les interests
-        return (shares * (totalAssets() + totalInterestsEarned)) / supply;
-    }
-
     function deposit(uint256 assets, address receiver) public override returns (uint256) {
         require(assets >= MIN_DEPOSIT, "Minimum deposit is 100 USDC");
         depositTimestamps[receiver] = block.timestamp;
 
-        // Mise à jour des interests avant le dépôt
         updateinterestDebt(receiver);
         
         uint256 shares = super.deposit(assets, receiver);
@@ -53,57 +38,78 @@ contract VaultManager is ERC4626 {
         return shares;
     }
 
-    function withdraw(uint256 assets, address receiver, address owner) public override returns (uint256) {
-        require(
-            block.timestamp >= depositTimestamps[owner] + LOCK_PERIOD,
-            "Funds are locked for 30 days"
-        );
+   // withdraw to track withdrawals
+function withdraw(uint256 assets, address receiver, address owner) public override returns (uint256) {
+    require(
+        block.timestamp >= depositTimestamps[owner] + LOCK_PERIOD,
+        "Funds are locked for 30 days"
+    );
 
-        // Claim des interests avant le retrait
-        claiminterests(owner);
-        
-        return super.withdraw(assets, receiver, owner);
+    claimPendingToShares(owner);
+    
+    totalWithdrawn += assets;
+    return super.withdraw(assets, receiver, owner);
+}
+
+    function getUserSharePercentage(address user) public view returns (uint256) {
+        uint256 totalShares = totalSupply();
+        if (totalShares == 0) return 0;
+        return (balanceOf(user) * 10000) / totalShares;
     }
 
-    // Distribution des interests des validators
-    function distributeinterests(uint256 amount) external {
-        require(totalSupply() > 0, "No shares");
+    function distributeinterests(address user) public {
+     uint256 totalAmount= borrowerManager.calculateMonthlyRewards();
+    // Get user share percentage (in basis points)
+    uint256 userPercentage = getUserSharePercentage(user);
+    require(userPercentage > 0, "No shares owned");
+    
+    // Calculate user's portion of amount
+    uint256 userAmount = (totalAmount * userPercentage) / 10000;
+    
+    // Add to pending amounts
+    pendingAmounts[user] += userAmount;
+}
+
+    function claimPendingToShares(address user) public returns (uint256) {
+    uint256 pendingAmount = pendingAmounts[user];
+    require(pendingAmount > 0, "No pending rewards");
+    
+    // Convert pending amount to shares
+    uint256 newShares = convertToShares(pendingAmount);
+    
+    // Reset pending amount
+    pendingAmounts[user] = 0;
+    
+    // Mint new shares to user
+    _mint(user, newShares);
+    
+    return newShares;
+}
+
+function getPendingAmount(address user) public view returns (uint256) {
+    return pendingAmounts[user];
+}
+
+// Add function to get current lending amount
+function getCurrentLendingAmount() public view returns (uint256) {
+    uint256 totalDeposited = totalAssets(); // From ERC4626
+    return totalDeposited - totalWithdrawn;
+}
+
+function getUtilizationRatio() public view returns (uint256) {
+        uint256 currentLending = getCurrentLendingAmount();
+        if (currentLending == 0) return 0;
         
-        totalInterestsEarned += amount;
-        interestsPerShare += (amount * interestS_PRECISION) / totalSupply();
-        
-        emit interestsDistributed(amount);
+        uint256 totalBorrowed = borrowerManager.getTotalBorrowedTokens();
+        return (totalBorrowed * 10000) / currentLending;
     }
 
-    // Calcul des interests en attente pour un utilisateur
-    function pendinginterests(address user) public view returns (uint256) {
-        uint256 shares = balanceOf(user);
-        if (shares == 0) return 0;
-        
-        uint256 accumulatedinterests = (shares * interestsPerShare) / interestS_PRECISION;
-        return accumulatedinterests - interestDebt[user];
-    }
-
-    // Claim des interests
-    function claiminterests(address user) public returns (uint256) {
-        uint256 pending = pendinginterests(user);
-        if (pending > 0) {
-            interestDebt[user] = (balanceOf(user) * interestsPerShare) / interestS_PRECISION;
-            IERC20(asset()).transfer(user, pending);
-            emit interestsClaimed(user, pending);
-        }
-        return pending;
-    }
-
-    // Mise à jour du interest debt
     function updateinterestDebt(address user) internal {
-        if (balanceOf(user) > 0) {
-            claiminterests(user);
+        uint256 shares = balanceOf(user);
+        if (shares > 0) {
+            interestDebt[user] = (shares * interestsPerShare) / interestS_PRECISION;
         }
     }
 
-    // Pour la compatibilité avec LendingPool
-    function getTotalDeposits() external view returns (uint256) {
-        return totalAssets();
-    }
-} 
+    
+}

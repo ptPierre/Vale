@@ -1,28 +1,51 @@
+const hre = require("hardhat");
+
 async function main() {
-  const DataStorage = await ethers.getContractFactory("DataStorage");
-  const dataStorage = await DataStorage.deploy();
+  // 1️⃣ Déploiement du contrat USDC (si nécessaire)
+  const Usdc = await hre.ethers.getContractFactory("Usdc");
+  const usdc = await Usdc.deploy();
+  await usdc.waitForDeployment();
+  const usdcAddress = await usdc.getAddress();
+  console.log(`✅ Usdc déployé à : ${usdcAddress}`);
 
-  // Wait for the deployment transaction to be mined
-  await dataStorage.waitForDeployment();
+  // 2️⃣ Déploiement de VaultManager
+  const VaultManager = await hre.ethers.getContractFactory("VaultManager");
+  const vaultManager = await VaultManager.deploy(usdcAddress);
+  await vaultManager.waitForDeployment();
+  const vaultManagerAddress = await vaultManager.getAddress();
+  console.log(`✅ VaultManager déployé à : ${vaultManagerAddress}`);
 
-  const deployedAddress = await dataStorage.getAddress();
-  console.log("DataStorage deployed to:", deployedAddress);
+  // 3️⃣ Déploiement de ValeToken (si nécessaire)
+  const ValeToken = await hre.ethers.getContractFactory("ValeToken");
+  const valeToken = await ValeToken.deploy();
+  await valeToken.waitForDeployment();
+  const valeTokenAddress = await valeToken.getAddress();
+  console.log(`✅ ValeToken déployé à : ${valeTokenAddress}`);
 
-  console.log("Waiting for block confirmations...");
-  // Wait for few block confirmations
-  const deploymentReceipt = await dataStorage.deploymentTransaction().wait(6);
+  // 4️⃣ Déploiement de BorrowerManager
+  const BorrowerManager = await hre.ethers.getContractFactory("BorrowerManager");
+  const borrowerManager = await BorrowerManager.deploy(valeTokenAddress, usdcAddress, vaultManagerAddress);
+  await borrowerManager.waitForDeployment();
+  const borrowerManagerAddress = await borrowerManager.getAddress();
+  console.log(`✅ BorrowerManager déployé à : ${borrowerManagerAddress}`);
 
-  // Verify the contract
-  console.log("Verifying contract...");
-  await hre.run("verify:verify", {
-    address: deployedAddress,
-    constructorArguments: [],
-  });
+  // 5️⃣ Déploiement de LendingPool
+  const LendingPool = await hre.ethers.getContractFactory("LendingPool");
+  const lendingPool = await LendingPool.deploy(usdcAddress, valeTokenAddress, vaultManagerAddress);
+  await lendingPool.waitForDeployment();
+  const lendingPoolAddress = await lendingPool.getAddress();
+  console.log(`✅ LendingPool déployé à : ${lendingPoolAddress}`);
+
+  // 6️⃣ Approve BorrowerManager pour utiliser les tokens USDC depuis VaultManager
+  const approveTx = await usdc.approve(borrowerManagerAddress, hre.ethers.parseUnits("1000000", 6)); // 1M USDC
+  await approveTx.wait();
+  console.log(`✅ VaultManager a approuvé BorrowerManager pour 1M USDC`);
+
+  console.log("🚀 Tous les contrats ont été déployés avec succès !");
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  }); 
+// Gestion des erreurs
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

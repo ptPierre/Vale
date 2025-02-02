@@ -43,8 +43,9 @@ contract BorrowerManager is ReentrancyGuard, Ownable {
     uint256 public constant LTV_RATIO = 85;              // 85% rate loan/value max
     uint256 public constant RATIO_DENOMINATOR = 100;
     uint256 public constant LIQUIDATION_AMOUNT = 32 ether; 
-    uint256 public constant LIQUIDATION_BONUS = 500;     // 5% bonus liquidation
-    uint256 public constant TOTAL_BASIS_POINTS = 10000;
+    uint256 public lastMonthTotalRewards = 0;
+    uint256[] public validatorTokenIds;
+
 
     struct BorrowerInfo {
         uint256 debt;
@@ -58,9 +59,7 @@ contract BorrowerManager is ReentrancyGuard, Ownable {
     mapping(uint256 => uint256) public validatorPrices;  // Prix des validators
 
 
-    
-    event LiquidationRisk(address indexed borrower, uint256 tokenId);
-    event Liquidated(
+        event Liquidated(
         address indexed borrower,
         address indexed liquidator,
         uint256 tokenId,
@@ -98,14 +97,29 @@ contract BorrowerManager is ReentrancyGuard, Ownable {
         });
     }
 
+    // Ajouter un validateur à la liste (appelé lors de l'ajout d'un NFT)
+    function addValidator(uint256 tokenId) internal {
+        validatorTokenIds.push(tokenId);
+    }
 
-    function borrow(uint256 tokenId, uint256 amount, address borrower) external nonReentrant {
-        require(amount > 0, "Amount must be greater than 0");
-        require(borrowers[borrower].debt == 0, "Existing debt must be repaid");
+    // Supprime un validateur (ex : en cas de liquidation)
+    function removeValidator(uint256 tokenId) internal {
+        for (uint256 i = 0; i < validatorTokenIds.length; i++) {
+            if (validatorTokenIds[i] == tokenId) {
+                validatorTokenIds[i] = validatorTokenIds[validatorTokenIds.length - 1]; // Remplace par le dernier élément
+                validatorTokenIds.pop(); // Supprime le dernier élément
+                break;
+            }
+        }
+    }
 
-        // Fetch the balance of the validator 
+    function borrow(uint256 tokenId, address borrower) external nonReentrant {
+        // Fetch the balance of the validator and the ethprice
         CompleteValidatorInfo memory info = getCompleteValidatorInfo(valeToken.getPublicKey(tokenId));
         uint256 validatorValue = info.balance;
+        uint256 amount = info.ethPrice* validatorValue;
+        require(amount > 0, "Amount must be greater than 0");
+        require(borrowers[borrower].debt == 0, "Existing debt must be repaid");
 
         //Calcul max Borrox
         uint256 maxBorrow = (validatorValue * LTV_RATIO) / RATIO_DENOMINATOR;
@@ -121,28 +135,36 @@ contract BorrowerManager is ReentrancyGuard, Ownable {
             isLiquidated: false
         });
         validatorOwners[tokenId] = borrower;
+        addValidator(tokenId);
+        lastMonthTotalRewards += info.rewards;
 
         usdc.transferFrom(address(vaultmanager), borrower,amount); 
     }
 
     function repay(address borrower) external nonReentrant {
         BorrowerInfo storage info = borrowers[borrower];
+        uint256 tokenId = info.validatorTokenId;
+        CompleteValidatorInfo memory complete = getCompleteValidatorInfo(valeToken.getPublicKey(tokenId));
+
         require(info.debt > 0, "No debt to repay");
         require(!info.isLiquidated, "Position liquidated");
 
-        uint256 amount = info.debt;
-        uint256 tokenId = info.validatorTokenId;
+        uint256 amount = info.debt * complete.ethPrice;
 
         usdc.transferFrom(borrower, address(vaultmanager), amount);
         valeToken.transferFrom(address(this), borrower, tokenId);
+
+        removeValidator(info.validatorTokenId);
+        lastMonthTotalRewards-= complete.rewards;
 
         delete borrowers[borrower];
         delete validatorOwners[tokenId];
     }
 
 
-    function canBeLiquidated(address borrower, uint256 tokenId) public view returns (bool) {
+    function canBeLiquidated(address borrower) public view returns (bool) {
         BorrowerInfo memory info = borrowers[borrower];
+        uint256 tokenId = info.validatorTokenId;
         if (info.debt == 0 || info.isLiquidated) return false;
  
         CompleteValidatorInfo memory validator_info = getCompleteValidatorInfo(valeToken.getPublicKey(tokenId));
@@ -152,22 +174,59 @@ contract BorrowerManager is ReentrancyGuard, Ownable {
     }
 
     function liquidate(address borrower) external nonReentrant {
-        require(canBeLiquidated(borrower), "Position not liquidatable");
         BorrowerInfo storage info = borrowers[borrower];
         uint256 debt = info.debt;
         uint256 tokenId = info.validatorTokenId;
-
-        // Transférer l'emprunt (USDC) du liquidateur vers le contrat
-        require(usdc.transferFrom(msg.sender, address(vaultmanager), debt), "Transfer failed");
+        require(canBeLiquidated(borrower), "Position not liquidatable");
 
         // Transférer le NFT à l'adresse du contrat (vaultManager)
         valeToken.transferFrom(address(this), msg.sender, tokenId);
 
         // Marquer la position comme liquidée
         info.isLiquidated = true;
+
+        removeValidator(info.validatorTokenId);
+        CompleteValidatorInfo memory toremove = getCompleteValidatorInfo(valeToken.getPublicKey(tokenId));
+        
+        lastMonthTotalRewards-= toremove.rewards;
+
         // Émettre l'événement de liquidation
         emit Liquidated(borrower, msg.sender, tokenId, debt, 0);  
     }
 
+    function getTotalBorrowedTokens() public view returns (uint256) {
+        uint256 totalBorrowed = 0;
+
+        for (uint256 i = 0; i < validatorTokenIds.length; i++) {
+            uint256 tokenId = validatorTokenIds[i];
+            address borrower = validatorOwners[tokenId];
+
+        if (borrower != address(0)) {  // Vérifier que le NFT est bien emprunté
+            totalBorrowed += borrowers[borrower].debt;
+        }}
+        return totalBorrowed;
+    }
+
+    // Fonction pour calculer les rewards mensuels sans paramètre
+    function calculateMonthlyRewards() public returns (uint256) {
+        uint256 totalCurrentRewards = 0;
+
+        // Parcours tous les validateurs enregistrés
+        for (uint256 i = 0; i < validatorTokenIds.length; i++) {
+            string memory publicKey = valeToken.getPublicKey(validatorTokenIds[i]);
+            CompleteValidatorInfo memory info = getCompleteValidatorInfo(publicKey);
+            totalCurrentRewards += info.rewards;
+        }
+
+        uint256 rate_loan_value = vaultmanager.getUtilizationRatio();
+        
+        // Calcul des nouveaux rewards gagnés ce mois-ci
+        uint256 monthlyRewards = totalCurrentRewards - lastMonthTotalRewards;
+        uint256 monthlyRewards_loaners = monthlyRewards*rate_loan_value;
+        
+        lastMonthTotalRewards = totalCurrentRewards;
+
+        return monthlyRewards_loaners;  // Cette valeur sera redistribuée aux prêteurs
+    }
 
 } 
