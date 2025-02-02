@@ -29,7 +29,6 @@ contract VaultManager is ERC4626 {
     function deposit(uint256 assets, address receiver) public override returns (uint256) {
         require(assets >= MIN_DEPOSIT, "Minimum deposit is 100 USDC");
         depositTimestamps[receiver] = block.timestamp;
-
         updateinterestDebt(receiver);
         
         uint256 shares = super.deposit(assets, receiver);
