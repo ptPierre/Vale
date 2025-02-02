@@ -27,26 +27,30 @@ export const Header: React.FC = () => {
   );
 
   return (
-    <header className="fixed top-0 w-full bg-zinc-900/90 backdrop-blur-lg border-b border-orange-500/10 z-50 shadow-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-18">
+    <header className="fixed top-0 w-full bg-zinc-900/90 backdrop-blur-lg border-b border-orange-500/10 z-50 shadow-xl h-[72px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+        <div className="flex justify-between items-center h-full">
           <Link 
             to="/" 
-            className="flex items-center h-full px-2 group transition-transform duration-300"
+            className="flex items-center h-full py-3"
           >
             <img 
               src={logo} 
               alt="Vale Logo" 
-              className="h-[40px] w-auto object-contain filter drop-shadow-lg"
+              className="h-[43px] w-auto object-contain"
             />
           </Link>
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-16">
-            <NavLink to="/">Home</NavLink>
-            <NavLink to="/borrowing">Borrow</NavLink>
-            <NavLink to="/lending">Lend</NavLink>
-            <div>
-              <WalletConnector />
+
+          {/* Navigation desktop */}
+          <nav className="hidden md:flex items-center space-x-16 h-full">
+            <div className="flex items-center h-full space-x-16">
+              <NavLink to="/">Home</NavLink>
+              <NavLink to="/borrowing">Borrow</NavLink>
+              <NavLink to="/lending">Lend</NavLink>
+            </div>
+            
+            <div className="h-full flex items-center">
+              <WalletConnector className="h-[42px]"/>
             </div>
           </nav>
 

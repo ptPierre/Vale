@@ -1,40 +1,37 @@
-import * as React from "react";
-import { motion } from 'framer-motion';
+import { Github } from 'lucide-react';
 
-export const Footer: React.FC = () => {
+export const Footer = () => {
   const currentYear = new Date().getFullYear();
-
+  
   return (
-    <footer className="bg-[var(--color-secondary)] py-8 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex flex-col items-center justify-center space-y-4"
-        >
-          <p className="text-gray-400 text-sm">
+    <footer className="bg-zinc-900/50 text-gray-300 py-8 mt-auto border-t border-orange-500/10">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+          <p className="text-sm font-light tracking-wide text-gray-400">
             © {currentYear} Vale. All rights reserved.
           </p>
-          <div className="flex space-x-4">
-            <motion.a
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              href="#"
-              className="text-gray-400 hover:text-[var(--color-primary)] transition-colors"
+          
+          <div className="flex items-center space-x-8">
+            <a 
+              href="https://github.com/ptPierre/Vale" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-gray-400 hover:text-orange-400 transform transition-all duration-300 ease-in-out group"
             >
-              Terms
-            </motion.a>
-            <motion.a
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              href="#"
-              className="text-gray-400 hover:text-[var(--color-primary)] transition-colors"
+              <Github 
+                size={20} 
+                strokeWidth={1.5}
+                className="group-hover:scale-110" 
+              />
+            </a>
+            <a 
+              href="/privacy" 
+              className="text-sm font-light tracking-wide text-gray-400 hover:text-orange-400 transition-colors duration-300"
             >
               Privacy
-            </motion.a>
+            </a>
           </div>
-        </motion.div>
+        </div>
       </div>
     </footer>
   );
