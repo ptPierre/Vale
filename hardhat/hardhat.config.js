@@ -1,6 +1,8 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+
 module.exports = {
   solidity: "0.8.20",
   paths: {
@@ -12,8 +14,19 @@ module.exports = {
     hardhat: {
     },
     holesky: {
-      url: process.env.HOLESKY_RPC_URL || "",
-      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      url: "https://ethereum-holesky.publicnode.com",
+      accounts: [PRIVATE_KEY],
+      chainId: 17000,
+      timeout: 60000,
+      gasPrice: "auto",
+      fallbackProvider: {
+        urls: [
+          "https://ethereum-holesky.publicnode.com",
+          "https://1rpc.io/holesky",
+          "https://holesky.beaconcha.in",
+          "https://holesky.drpc.org"
+        ]
+      }
     }
   },
   etherscan: {

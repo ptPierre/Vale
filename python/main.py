@@ -23,7 +23,7 @@ private_key = os.getenv('PRIVATE_KEY')
 account = Account.from_key(private_key)
 
 # Contract configuration
-CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS')
+CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS')  # Avec "0x" au début
 
 # Get the absolute path to the artifacts directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -37,6 +37,8 @@ except FileNotFoundError:
     print("Make sure you've compiled your contracts with 'npx hardhat compile'")
     raise
 
+# Lors de l'initialisation du contrat, assurez-vous que l'adresse est checksum
+CONTRACT_ADDRESS = Web3.to_checksum_address(CONTRACT_ADDRESS)
 contract = w3.eth.contract(address=CONTRACT_ADDRESS, abi=contract_abi)
 
 # CSV file configuration
