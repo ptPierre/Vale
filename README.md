@@ -1,11 +1,11 @@
 # Vale - Zero-Interest Lending for Tokenized Validators
 
-
-
 Vale enables Tokenized Validator holders to access immediate liquidity through zero-interest loans while letting lenders earn staking rewards.
 
-![Vale home page](home.jpg)!
-![Vale home page](home2.jpg)
+<div align="center">
+  <img src="./home.jpg" alt="Vale home page" width="800"/>
+  <img src="./home2.jpg" alt="Vale home page 2" width="800"/>
+</div>
 
 ## 🌟 Overview
 
@@ -22,14 +22,18 @@ Vale solves the liquidity problem for staked ETH:
 - Borrow up to 84% of its value in USDC (e.g., 27 ETH worth for a 32 ETH NFT)
 - Repay the same amount to get your NFT back
 
-![Vale borrower page](borrow.jpg)
+<div align="center">
+  <img src="./assets/borrow.jpg" alt="Vale borrower page" width="800"/>
+</div>
 
 **For Lenders:**
 - Deposit funds into the ERC4626 vault
 - Receive tokens representing your pool share
 - Earn a portion of staking rewards from NFTs
 
-![Vale lender page](lend.jpg)
+<div align="center">
+  <img src="./assets/lend.jpg" alt="Vale lender page" width="800"/>
+</div>
 
 ## 🚀 Quick Start
 
