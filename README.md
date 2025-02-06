@@ -23,7 +23,7 @@ Vale solves the liquidity problem for staked ETH:
 - Repay the same amount to get your NFT back
 
 <div align="center">
-  <img src="./assets/borrow.jpg" alt="Vale borrower page" width="800"/>
+  <img src="./borrow.jpg" alt="Vale borrower page" width="800"/>
 </div>
 
 **For Lenders:**
@@ -32,7 +32,7 @@ Vale solves the liquidity problem for staked ETH:
 - Earn a portion of staking rewards from NFTs
 
 <div align="center">
-  <img src="./assets/lend.jpg" alt="Vale lender page" width="800"/>
+  <img src="./lend.jpg" alt="Vale lender page" width="800"/>
 </div>
 
 ## 🚀 Quick Start
