@@ -17,23 +17,47 @@ Vale solves the liquidity problem for staked ETH:
 
 ## 💡 How It Works
 
-**For Borrowers:**
+### For Borrowers
 - Deposit your Validator NFT as collateral
 - Borrow up to 84% of its value in USDC (e.g., 27 ETH worth for a 32 ETH NFT)
 - Repay the same amount to get your NFT back
+- No interest payments required
+- Staking rewards are used to compensate lenders
 
 <div align="center">
   <img src="./borrow.png" alt="Vale borrower page" width="800"/>
 </div>
 
-**For Lenders:**
+### For Lenders
 - Deposit funds into the ERC4626 vault
 - Receive tokens representing your pool share
 - Earn a portion of staking rewards from NFTs
+- Returns scale with pool utilization
+- Protected against validator slashing risks
 
 <div align="center">
   <img src="./lend.png" alt="Vale lender page" width="800"/>
 </div>
+
+## 🛡️ Risk Management
+
+### Slashing Protection
+If a validator's value drops below 32 ETH:
+- Borrower loses NFT access
+- Loan is forgiven
+- Lenders are protected from validator risks
+
+### Reward Distribution
+- Staking rewards from NFTs are tracked via Kiln Connect
+- Rewards are distributed based on pool share
+- Higher pool utilization = higher rewards for lenders
+
+## 🏗️ Technical Stack
+
+- **Smart Contracts**: Solidity, ERC4626 vault, ERC721 for NFTs
+- **Frontend**: React, Web3.js
+- **Backend**: Python for reward calculations
+- **Integration**: Kiln Connect for validator data
 
 ## 🚀 Quick Start
 
